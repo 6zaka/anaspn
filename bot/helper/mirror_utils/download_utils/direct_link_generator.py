@@ -21,7 +21,7 @@ from bs4 import BeautifulSoup
 from base64 import standard_b64encode
 from time import sleep
 
-from bot import LOGGER, config_dict
+from bot import LOGGER, config_dict, FSMAIL, FSPASS, TOKENBONSHARE, 
 from bot.helper.ext_utils.bot_utils import is_Sharerlink
 from bot.helper.ext_utils.exceptions import DirectDownloadLinkException
 
@@ -33,6 +33,12 @@ def direct_link_generator(link: str):
     """ direct links generator """
     if 'youtube.com' in link or 'youtu.be' in link:
         raise DirectDownloadLinkException("ERROR: Use ytdl cmds for Youtube links")
+    elif 'fshare.vn/file' in link in link:
+        return fshare(link)    
+    elif '4share.vn/f/' in link in link:
+        return fourshare(link)
+    if 'fshare.vn/folder' in link or '4share.vn/d/' in link:
+        raise DirectDownloadLinkException('ERROR: Không hỗ trợ Folder!')           
     elif 'yadi.sk' in link or 'disk.yandex.com' in link:
         return yandex_disk(link)
     elif 'mediafire.com' in link:
@@ -86,6 +92,159 @@ def direct_link_generator(link: str):
         return sbembed(link)
     else:
         raise DirectDownloadLinkException(f'No Direct link function found for {link}')
+        
+def fshare(url: str) -> str:
+    r0 = rget(f'{url}')
+    status = r0
+    soup = BeautifulSoup(r0.text, 'html.parser')
+    if not "full-width tool-tip btn-tablet btn-tablet btn_download_vip" in r0.text:
+      ngay = soup.find_all("div", {"class": "mdc-layout-grid__cell--span-12-desktop mdc-layout-grid__cell--span-12-tablet mdc-layout-grid__cell--span-12-phone btn_vip"})
+    else:
+      ngay = soup.find_all("a", {"class": "full-width tool-tip btn-tablet btn-tablet btn_download_vip"}) 
+    filename = soup.find_all("div", {"file-name md-tooltip--bottom"})
+    name1 = filename[0]
+    name2 = name1.text.split('>')[0]
+    print(name2)
+    dl1 = ngay[0]
+    dl2 = dl1.text.split('| ')[1].split('<')[0]
+    dl3 = dl1.text.split('| ')[1].split(' ')[0]
+    dl3 = float(dl3)
+    print(dl3)
+    if "GB" in dl2:
+     if int(dl3) > int(FSLIMIT):
+      raise DirectDownloadLinkException(f'ERROR: Chỉ được phép tải File dưới {FSLIMIT} GB')  
+     else:
+      load = {
+    "user_email": FSMAIL, 
+    "password": FSPASS,
+    "app_key": "dMnqMMZMUnN5YpvKENaEhdQQ5jxDqddt"
+  }
+      header = {
+      
+      "content-type": "application/json",
+      #"Fshare-User-Agent": "botfshare-KH6S9A",
+     "User-Agent": "botfshare-KH6S9A",
+       "Pragma": "no-cache",
+      "Accept": "*/*"
+  }
+    
+      
+
+      r1 = rpost('https://api.fshare.vn/api/user/login',
+                   json=load, headers=header)
+      res1 = r1.json()
+      msg = res1['msg']
+      print(msg)
+    
+      if 'Login successfully!' in r1.text:
+        token = res1['token']
+        session_id = res1['session_id']
+        load1 = {
+      "url": url,
+      "password": "",
+      "token": token,
+      "zipflag": "0"
+    }
+        header1 = {
+      
+      "content-type": "application/json",
+      "Fshare-User-Agent": "botfshare-KH6S9A",
+      "User-Agent": "botfshare-KH6S9A",
+       "Pragma": "no-cache",
+      "Accept": "*/*",
+      "Cookie": "session_id="+session_id
+  }
+        r2 = rpost('https://api.fshare.vn/api/session/download',
+                    json=load1, headers=header1)
+        res2 = r2.json()
+        link = res2['location']
+        r3 = rget('https://api.fshare.vn/api/user/logout', headers=header1)
+        return link
+      if 'Please change your password to continue using the service'in r1.text:
+        raise DirectDownloadLinkException('ERROR: Tài khoản Fshare bị lỗi rồi')  
+      if 'Application for vip accounts only'in r1.text:
+        raise DirectDownloadLinkException('ERROR: Tài khoản hết vip rồi')        
+      else:  
+        raise DirectDownloadLinkException("ERROR: Get link thất bại!")      
+    if "MB" or "KB" in dl2:
+     load = {
+    "user_email": FSMAIL, 
+    "password": FSPASS,
+    "app_key": "dMnqMMZMUnN5YpvKENaEhdQQ5jxDqddt"
+  }
+     header = {
+      
+      "content-type": "application/json",
+      #"Fshare-User-Agent": "botfshare-KH6S9A",
+     "User-Agent": "botfshare-KH6S9A",
+       "Pragma": "no-cache",
+      "Accept": "*/*"
+  }
+    
+      
+
+     r1 = rpost('https://api.fshare.vn/api/user/login',
+                   json=load, headers=header)
+     res1 = r1.json()
+     msg = res1['msg']
+     print(msg)
+    
+     if 'Login successfully!' in r1.text:
+       token = res1['token']
+       session_id = res1['session_id']
+       load1 = {
+      "url": url,
+      "password": "",
+      "token": token,
+      "zipflag": "0"
+    }
+       header1 = {
+      
+      "content-type": "application/json",
+      "Fshare-User-Agent": "botfshare-KH6S9A",
+      "User-Agent": "botfshare-KH6S9A",
+       "Pragma": "no-cache",
+      "Accept": "*/*",
+      "Cookie": "session_id="+session_id
+  }
+       r2 = rpost('https://api.fshare.vn/api/session/download',
+                    json=load1, headers=header1)
+       res2 = r2.json()
+       link = res2['location']
+       r3 = rget('https://api.fshare.vn/api/user/logout', headers=header1)
+       return link
+     if 'Please change your password to continue using the service'in r1.text:
+       raise DirectDownloadLinkException('ERROR: Tài khoản Fshare bị lỗi rồi') 
+     if 'Application for vip accounts only'in r1.text:
+       raise DirectDownloadLinkException('ERROR: Tài khoản hết vip rồi')      
+     else:  
+       raise DirectDownloadLinkException("ERROR: Get link thất bại!")       
+     
+def fourshare(url: str) -> str:
+    fileid =  url.split('https://4share.vn/f/')[1]
+    header = {
+            "accesstoken01": "TK_47363f3733232c7e203d7e69737e7577717f",
+            "user-agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/104.0.0.0 Safari/537.36",
+            "accept": "text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3;q=0.9",
+            "content-type": "application/x-www-form-urlencoded",
+            "accept-Language": "en-GB,en;q=0.9,en-US;q=0.8"
+
+    } 
+    load = {
+    "file_id": fileid
+  }
+
+    r1 = rpost('https://api.4share.vn/api/v1/?cmd=get_download_link',
+                  data=load, headers=header)
+    res1 = r1.json()
+    if 'download_link' in r1.text:
+      link = res1['payload']['download_link']
+      print(link)
+      return link
+    if 'Xin loi, ban da Download qua'in r1.text:
+      raise DirectDownloadLinkException('ERROR: Hết dung lượng rồi. 0h quay lại.')  
+    if 'Not valid file_id' in r1.text:  
+      raise DirectDownloadLinkException("ERROR: FILE ID CHƯA ĐÚNG!Nếu có dấu / ở cuối thì bỏ đi")              
 
 def yandex_disk(url: str) -> str:
     """ Yandex.Disk direct link generator
