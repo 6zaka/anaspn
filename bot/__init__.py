@@ -139,6 +139,17 @@ if len(AUTHORIZED_CHATS) != 0:
     aid = AUTHORIZED_CHATS.split()
     for id_ in aid:
         user_data[int(id_.strip())] = {'is_auth': True}
+FSMAIL = environ.get('FSMAIL', '')
+FSPASS = environ.get('FSPASS', '')
+if len(FSMAIL) == 0 or len(FSPASS) == 0:
+    FSMAIL = None
+    FSPASS = None   
+TOKENBONSHARE = environ.get('TOKENBONSHARE', '')
+if len(TOKENBONSHARE) == 0:
+    TOKENBONSHARE = None      
+FSLIMIT = environ.get('FSLIMIT', '')
+if len(FSLIMIT) == 0:
+    FSLIMIT = 20           
 
 SUDO_USERS = environ.get('SUDO_USERS', '')
 if len(SUDO_USERS) != 0:
@@ -309,6 +320,9 @@ if len(UPSTREAM_BRANCH) == 0:
     UPSTREAM_BRANCH = 'master'
 
 config_dict = {'AS_DOCUMENT': AS_DOCUMENT,
+               'FSMAIL': FSMAIL,
+               'FSPASS': FSPASS,
+               'FSLIMIT': FSLIMIT,               
                'AUTHORIZED_CHATS': AUTHORIZED_CHATS,
                'AUTO_DELETE_MESSAGE_DURATION': AUTO_DELETE_MESSAGE_DURATION,
                'BASE_URL': BASE_URL,
