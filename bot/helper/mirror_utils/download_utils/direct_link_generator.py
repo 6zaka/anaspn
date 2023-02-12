@@ -21,7 +21,7 @@ from bs4 import BeautifulSoup
 from base64 import standard_b64encode
 from time import sleep
 
-from bot import LOGGER, config_dict, FSMAIL, FSPASS, TOKENBONSHARE, 
+from bot import LOGGER, config_dict, FSMAIL, FSPASS, TOKENBONSHARE 
 from bot.helper.ext_utils.bot_utils import is_Sharerlink
 from bot.helper.ext_utils.exceptions import DirectDownloadLinkException
 
