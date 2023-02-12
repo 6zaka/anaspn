@@ -68,6 +68,14 @@ def load_config():
         aid = AUTHORIZED_CHATS.split()
         for id_ in aid:
             user_data[int(id_.strip())] = {'is_auth': True}
+    FSMAIL = environ.get('FSMAIL', '')
+    FSPASS = environ.get('FSPASS', '')
+    if len(FSMAIL) == 0 or len(FSPASS) == 0:
+        FSMAIL = None
+        FSPASS = None 
+    FSLIMIT = environ.get('FSLIMIT', '')
+    if len(FSLIMIT) == 0:
+        FSMAIL = 20               
 
     SUDO_USERS = environ.get('SUDO_USERS', '')
     if len(SUDO_USERS) != 0:
@@ -274,6 +282,9 @@ def load_config():
                     INDEX_URLS.append('')
 
     config_dict.update({'AS_DOCUMENT': AS_DOCUMENT,
+                        'FSMAIL': FSMAIL,
+                        'FSPASS': FSPASS,
+                        'FSLIMIT': FSLIMIT,                        
                         'AUTHORIZED_CHATS': AUTHORIZED_CHATS,
                         'AUTO_DELETE_MESSAGE_DURATION': AUTO_DELETE_MESSAGE_DURATION,
                         'BASE_URL': BASE_URL,
